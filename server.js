@@ -62,15 +62,26 @@ app.get('/movies/favorite', async (req, res) => {
      Promise.all(promises).then(() => res.status(200).send(listPoster))
 });
 
-//GET poster url of that movie
-app.get('/movies/:movie_title', async (req, res) => {
+app.get('/movies', (req, res) => {
     req.log.info()
+    const user = checkAuth(req.header('Authorization'), res)
+    res.status(403).send()
+});
+
+//GET poster url of that movie
+app.get('/movies/:movie_title', (req, res) => {
+    req.log.info()
+    const user = checkAuth(req.header('Authorization'), res)
     const { movie_title } = req.params
     if(!movie_title.trim() == ''){
-        const poster = await axios.get(`http://www.omdbapi.com/?t=${movie_title}&apikey=9cac5e3a`)
+        axios.get(`http://www.omdbapi.com/?t=${movie_title}&apikey=9cac5e3a`)
             .then((response) => {
-                res.status(200).send(response.data.Poster)
-            }).catch((err) => console.log(err))
+                if(response.data.Poster){
+                    res.status(200).send(response.data.Poster)
+                }else{
+                    res.status(403).send('Not found')
+                }
+            }).catch((err) => res.status(403).send())
     }else{
         res.status(403).send()
     }
