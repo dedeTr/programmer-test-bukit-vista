@@ -16,9 +16,7 @@
     "express-pino-logger": "^5.0.0",
     "jsonwebtoken": "^8.5.1",
     "sequelize": "^6.4.0",
-    "sqlite3": "5.0.0"
-  },
-  "devDependencies": {
+    "sqlite3": "5.0.0",
     "nodemon": "^1.19.1"
   }
 }

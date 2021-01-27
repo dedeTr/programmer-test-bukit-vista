@@ -7,14 +7,16 @@ const pino = require('express-pino-logger')
 
 const {SECRET_KEY} = require('./config')
 const checkAuth = require('./check-auth')
+const {validateLoginInput, validateRegisterInput, validateFavoriteInput} = require('./validators')
 const User = require('./models/User')
 const Favorite_movies = require('./models/Favorite_movie')
 
+const PORT = process.env.PORT || 5000
+
+//Middleware
 const app = express()
 app.use(bodyParser.json())
 app.use(pino())
-
-const PORT = process.env.PORT || 8000
 
 //Table Relation
 User.hasMany(Favorite_movies, {
@@ -46,7 +48,6 @@ app.get('/movies/favorite', async (req, res) => {
     const userFavMovie = await User.findByPk(user.id,{
         include: [Favorite_movies]
     }).then((u) => u)
-    //  res.json(userFavMovie);
      const listFavMovies = JSON.parse(JSON.stringify(userFavMovie)).favorite_movies
      let listPoster = []
      let promises = []
@@ -62,6 +63,7 @@ app.get('/movies/favorite', async (req, res) => {
      Promise.all(promises).then(() => res.status(200).send(listPoster))
 });
 
+//GET poster url without title is forbidden
 app.get('/movies', (req, res) => {
     req.log.info()
     const user = checkAuth(req.header('Authorization'), res)
@@ -90,9 +92,10 @@ app.get('/movies/:movie_title', (req, res) => {
 
 //Login
 app.post('/login', async (req, res) => {
-    req.log.info()
+    // req.log.info()
     const reqName = req.body.name
     const reqPassword = req.body.password
+    validateLoginInput(reqName, reqPassword, res)
 
     const userLogin = await User.findAll({where:{name: reqName}}).then((user) => {
         return user
@@ -120,7 +123,9 @@ app.post('/login', async (req, res) => {
 //Register
 app.post('/register', async (req, res) => {
     req.log.info()
+    
     let { name, password } = req.body
+    validateRegisterInput(name, password, res)
     password = await bcrypt.hash(password, 12)
     User.create({
         name,
@@ -149,6 +154,7 @@ app.post('/movies/favorite', (req, res) => {
     req.log.info()
     const user = checkAuth(req.header('Authorization'))
     const { title } = req.body
+    validateFavoriteInput(title, res)
     Favorite_movies.create({
         title,
         user_id: user.id

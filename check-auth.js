@@ -10,7 +10,7 @@ module.exports = (authorization, res) => {
               return user
             } catch (err) {
                 res.status(403).send('Invalid/Expired token');
-                throw new AuthenticationError('Invalid/Expired token')
+                throw new Error('Invalid/Expired token')
             }
           }
           res.status(403).send("Authentication token must be 'Bearer [token]'");
